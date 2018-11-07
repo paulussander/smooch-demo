@@ -1,19 +1,20 @@
 package be.kunlabora.demo.smooch.client;
 
-import be.kunlabora.demo.smooch.rest.MessageRequestTO;
 import be.kunlabora.demo.smooch.rest.MessageTO;
+import io.smooch.client.ApiClient;
+import io.smooch.client.ApiException;
+import io.smooch.client.Configuration;
+import io.smooch.client.api.ConversationApi;
+import io.smooch.client.auth.ApiKeyAuth;
 import io.smooch.client.model.MessagePost;
-import io.smooch.client.model.MessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Named;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static org.springframework.http.HttpMethod.POST;
 
 @Named
 public class SmoochClient {
@@ -39,16 +40,22 @@ public class SmoochClient {
     }
 
     public void sendMessage(MessageTO messageTO) {
-        restTemplate.exchange(
-                "https://api.smooch.io/v1/apps/5be1b200f0c6dc00274dfa61/appusers/" + messageTO.getReceiver() + "/messages",
-                POST,
-                new HttpEntity<>(createMessage(messageTO), getBasicAuthenticationHeader()),
-                MessageResponse.class
-        );
+        ApiClient defaultApiClient = Configuration.getDefaultApiClient();
+        ApiKeyAuth jwt = (ApiKeyAuth) defaultApiClient.getAuthentication("jwt");
+        jwt.setApiKey(JWT_AUTH_TOKEN);
+        jwt.setApiKeyPrefix("Bearer");
+
+        ConversationApi conversationApi = new ConversationApi();
+        try {
+            conversationApi.postMessage(APP_ID, messageTO.getReceiver(), createMessage(messageTO));
+        } catch (ApiException e) {
+            LOGGER.error("api call threw exception.", e);
+            throw new RuntimeException(e);
+        }
     }
 
-    private MessageRequestTO createMessage(MessageTO messageTO) {
-        return new MessageRequestTO()
+    private MessagePost createMessage(MessageTO messageTO) {
+        return new MessagePost()
                 .role("appMaker")
                 .type("text")
                 .name("Kunlaborealis")
