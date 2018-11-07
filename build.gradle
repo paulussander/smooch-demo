@@ -20,6 +20,9 @@ sourceCompatibility = 10
 
 repositories {
     mavenCentral()
+    maven {
+        url 'https://smoochorg.bintray.com/maven/'
+    }
 }
 
 bootJar {
@@ -28,8 +31,16 @@ bootJar {
 }
 
 dependencies {
+    compile 'javax.inject:javax.inject:1'
     compile 'org.springframework.boot:spring-boot-starter'
     compile 'org.springframework.boot:spring-boot-starter-web'
+
+    // Smooch
+    compile 'io.smooch:api:4.0'
+    compile 'io.jsonwebtoken:jjwt-api:0.10.5'
+
+    runtime 'io.jsonwebtoken:jjwt-impl:0.10.5'
+    runtime 'io.jsonwebtoken:jjwt-jackson:0.10.5'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.assertj:assertj-core:3.11.1'
